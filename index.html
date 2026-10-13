@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>灵敏度实验室 · Valorant</title>
+  <style>
+    :root {
+      --ink: #edf2f7;
+      --muted: #9ca9b7;
+      --paper: #121a23;
+      --panel: #192430;
+      --line: rgba(230, 239, 245, .13);
+      --orange: #ff5c55;
+      --yellow: #ffca63;
+      --cyan: #7ee6e1;
+      --green: #94e6b4;
+      --shadow: 0 20px 50px rgba(0, 0, 0, .27);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      font-family: "Microsoft YaHei UI", "Noto Sans SC", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 14% 0%, rgba(255, 92, 85, .17), transparent 28rem),
+        radial-gradient(circle at 94% 18%, rgba(126, 230, 225, .12), transparent 25rem),
+        #0d141c;
+    }
+    .shell { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 44px 0 64px; }
+    header { display: flex; justify-content: space-between; gap: 26px; align-items: flex-start; margin-bottom: 26px; }
+    .eyebrow { color: var(--cyan); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { margin: 7px 0 7px; font-size: clamp(30px, 5vw, 50px); line-height: 1; letter-spacing: -.045em; }
+    .intro { max-width: 650px; margin: 0; color: var(--muted); line-height: 1.7; }
+    .badge { flex: 0 0 auto; margin-top: 8px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 999px; color: var(--yellow); font-size: 13px; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: rgba(25, 36, 48, .68); }
+    .step { padding: 13px 16px; color: var(--muted); font-size: 13px; border-right: 1px solid var(--line); }
+    .step:last-child { border: 0; }
+    .step b { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 8px; border-radius: 50%; color: #101820; background: var(--cyan); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; margin-top: 18px; }
+    .card { border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(145deg, rgba(27, 39, 52, .97), rgba(17, 27, 37, .97)); box-shadow: var(--shadow); }
+    .card-inner { padding: 25px; }
+    h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.02em; }
+    .sub { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; color: #cbd5df; font-size: 13px; font-weight: 700; }
+    input { width: 100%; margin-top: 8px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--ink); background: rgba(8, 14, 20, .55); font: inherit; }
+    input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(126, 230, 225, .13); }
+    .readout { margin-top: 17px; padding: 14px; border-radius: 12px; background: rgba(126, 230, 225, .09); color: #c8f7f4; line-height: 1.55; font-size: 13px; }
+    .readout strong { font-size: 18px; }
+    button { appearance: none; border: 0; border-radius: 10px; padding: 12px 15px; cursor: pointer; color: #15191f; background: var(--yellow); font: inherit; font-weight: 800; transition: transform .15s, filter .15s; }
+    button:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    button.secondary { color: #dce6ed; background: transparent; border: 1px solid var(--line); }
+    button.danger { color: #ffd8d6; border-color: rgba(255, 92, 85, .42); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .protocol { display: grid; gap: 12px; }
+    .protocol-item { display: grid; grid-template-columns: 31px 1fr; gap: 12px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: rgba(5, 12, 18, .2); }
+    .protocol-no { display: grid; place-items: center; width: 29px; height: 29px; border-radius: 8px; color: #141a20; background: var(--orange); font-size: 13px; font-weight: 900; }
+    .protocol-item:nth-child(2) .protocol-no { background: var(--yellow); }
+    .protocol-item:nth-child(3) .protocol-no { background: var(--cyan); }
+    .protocol-item strong { font-size: 14px; }
+    .protocol-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .session { display: none; margin-top: 18px; }
+    .session.show { display: block; }
+    .test-banner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 25px; border: 1px solid rgba(255, 202, 99, .33); border-radius: 17px; background: linear-gradient(105deg, rgba(255, 202, 99, .17), rgba(255, 92, 85, .1)); }
+    .test-banner .tiny { margin: 0; color: #fff0c5; font-size: 12px; letter-spacing: .1em; }
+    .test-sens { margin: 5px 0 0; font-size: 33px; font-weight: 900; letter-spacing: -.04em; }
+    .eDPI { color: #fff3c5; text-align: right; font-size: 13px; line-height: 1.6; }
+    .eDPI b { display: block; font-size: 20px; }
+    .timer { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 15px; margin-top: 16px; border: 1px solid var(--line); border-radius: 13px; background: rgba(4, 10, 15, .38); }
+    .timer time { min-width: 88px; color: var(--cyan); font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; text-align: center; }
+    .timer button { padding: 9px 12px; font-size: 13px; }
+    .score-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
+    .score-field { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(6, 12, 18, .22); }
+    .score-field label { min-height: 35px; color: #d4dee6; font-size: 12px; line-height: 1.3; }
+    .score-field input { padding: 9px; font-size: 15px; }
+    .score-hint { margin: 13px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .results { margin-top: 18px; overflow: hidden; }
+    .results-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 20px 24px 15px; }
+    .results-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    .result-wrap { overflow-x: auto; }
+    table { width: 100%; min-width: 750px; border-collapse: collapse; font-size: 13px; }
+    th { padding: 12px 14px; color: var(--muted); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: left; font-size: 11px; letter-spacing: .05em; white-space: nowrap; }
+    td { padding: 14px; border-bottom: 1px solid rgba(230, 239, 245, .08); white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    .rank { display: inline-grid; place-items: center; min-width: 26px; height: 26px; border-radius: 8px; color: #dfe7ee; background: rgba(255,255,255,.1); font-weight: 900; }
+    .rank.one { color: #172028; background: var(--yellow); }
+    .rank.two { color: #15202a; background: #c6d0dc; }
+    .rank.three { color: #261a15; background: #e6af80; }
+    .total { color: var(--green); font-size: 17px; font-weight: 900; }
+    .empty { padding: 38px 20px; color: var(--muted); text-align: center; }
+    .note { margin-top: 18px; padding: 17px 19px; border-left: 3px solid var(--orange); border-radius: 0 12px 12px 0; background: rgba(255, 92, 85, .08); color: #c9d5dd; font-size: 13px; line-height: 1.65; }
+    .recommendation { display: none; margin-top: 18px; padding: 20px 24px; border: 1px solid rgba(148, 230, 180, .35); border-radius: 16px; background: rgba(148, 230, 180, .1); }
+    .recommendation.show { display: block; }
+    .recommendation .eyebrow { color: var(--green); }
+    .recommendation h2 { margin-top: 5px; }
+    .recommendation p { margin: 0; color: #d2e7da; line-height: 1.65; font-size: 14px; }
+    .browser-lab { margin-top: 18px; }
+    .browser-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+    .browser-meta { color: var(--muted); font-size: 13px; text-align: right; line-height: 1.6; }
+    .browser-meta b { display: block; color: var(--yellow); font-size: 21px; }
+    .aim-stage { position: relative; width: 100%; height: min(48vw, 410px); min-height: 260px; margin-top: 19px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: radial-gradient(circle at center, #1d3341, #0a1119 72%); cursor: crosshair; }
+    .aim-stage:focus { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .aim-stage canvas { width: 100%; height: 100%; display: block; }
+    .aim-guide { position: absolute; inset: 0; display: grid; place-items: center; padding: 32px; pointer-events: none; text-align: center; color: #dce8ef; font-size: 14px; line-height: 1.65; background: rgba(4, 10, 15, .35); transition: opacity .2s; }
+    .aim-guide.hidden { opacity: 0; }
+    .aim-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--line); }
+    .aim-stat { padding: 10px 13px; background: #15212c; color: var(--muted); font-size: 12px; }
+    .aim-stat b { display: block; margin-top: 2px; color: var(--ink); font-size: 17px; font-variant-numeric: tabular-nums; }
+    .browser-results { display: none; margin-top: 18px; }
+    .browser-results.show { display: block; }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 22px, 1120px); padding-top: 24px; }
+      header { display: block; }
+      .badge { display: inline-block; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      .step:nth-child(2) { border-right: 0; }
+      .step:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .layout { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .score-field:last-child { grid-column: span 2; }
+      .browser-top { display: block; }
+      .browser-meta { margin-top: 12px; text-align: left; }
+      .aim-stage { height: 78vw; }
+      .aim-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Valorant sensitivity lab</div>
+        <h1>找到你真正能控住的灵敏度。</h1>
+        <p class="intro">用同一套靶场测试，比较 5 组灵敏度。它不猜“职业哥参数”，只看你的微调、转身、跟枪和手感是否稳定。</p>
+      </div>
+      <div class="badge">本地保存 · 不上传数据</div>
+    </header>
+
+    <section class="steps" aria-label="测试流程">
+      <div class="step"><b>1</b>填当前设置</div>
+      <div class="step"><b>2</b>生成候选值</div>
+      <div class="step"><b>3</b>靶场逐个测试</div>
+      <div class="step"><b>4</b>看综合排名</div>
+    </section>
+
+    <section class="layout">
+      <section class="card">
+        <div class="card-inner">
+          <h2>先设一个基准</h2>
+          <p class="sub">不要在测试中改 DPI、Windows 鼠标速度、显示器刷新率或准星。每组灵敏度都用同一把枪与同一测试流程。</p>
+          <div class="setup-grid">
+            <label>鼠标 DPI<input id="dpi" type="number" min="100" max="32000" step="50" value="800"></label>
+            <label>当前游戏灵敏度<input id="sensitivity" type="number" min="0.01" max="10" step="0.001" value="0.300"></label>
+          </div>
+          <div class="readout">当前 eDPI：<strong id="edpi">240</strong><br><span id="cm360">约 54.4 cm / 360°</span></div>
+          <div class="actions"><button id="generate">生成 5 组候选灵敏度</button><button class="secondary" id="shuffle">随机测试顺序</button></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-inner">
+          <h2>每组都照这个测</h2>
+          <p class="sub">建议每组之间休息 1 分钟；先不打排位。每次 6 分钟左右，完整做完 5 组更容易比较。</p>
+          <div class="protocol">
+            <div class="protocol-item"><span class="protocol-no">1</span><div><strong>微调 · 2 分钟</strong><p>靶场练习模式，Bot 设为「困难」。用常用枪，只记录自己能稳定完成的击杀数。</p></div></div>
+            <div class="protocol-item"><span class="protocol-no">2</span><div><strong>转身 + 跟枪 · 2 分钟</strong><p>在靶场找远近不同的 Bot，连续 10 次大转身后点头；再对移动 Bot 跟枪 30 秒。主观给分。</p></div></div>
+            <div class="protocol-item"><span class="protocol-no">3</span><div><strong>手感 · 2 分钟</strong><p>用死斗或靶场自由练习，注意是否经常过甩、拉不够、手腕紧张或需要反复修正。</p></div></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="browser-lab card">
+      <div class="card-inner">
+        <div class="browser-top">
+          <div><h2>不打开游戏：网页靶场测试</h2><p class="sub" style="margin-bottom:0">网页会把你的鼠标移动按候选灵敏度的相对比例放大或缩小。用它比较哪组更稳、更快；请在电脑浏览器中使用。</p></div>
+          <div class="browser-meta">待测试灵敏度<b id="browserSens">—</b><span id="browserRound">先生成候选值</span></div>
+        </div>
+        <div class="aim-stage" id="aimStage" tabindex="0" aria-label="网页靶场，点击后移动鼠标并点击目标">
+          <canvas id="aimCanvas"></canvas>
+          <div class="aim-guide" id="aimGuide">先生成候选值，然后点击“开始网页测试”。<br>测试会隐藏系统鼠标箭头；用页面中的白色准星对准圆形目标后左键射击。</div>
+        </div>
+        <div class="aim-stats">
+          <div class="aim-stat">剩余时间<b id="aimTime">00:45</b></div>
+          <div class="aim-stat">命中目标<b id="aimHits">0</b></div>
+          <div class="aim-stat">点击命中率<b id="aimAccuracy">—</b></div>
+          <div class="aim-stat">平均命中时间<b id="aimReaction">—</b></div>
+        </div>
+        <div class="actions"><button id="startBrowserTest">开始网页测试（45 秒）</button><button class="secondary" id="resetBrowserTest">重置当前网页测试</button></div>
+      </div>
+    </section>
+
+    <section class="browser-results card" id="browserResults">
+      <div class="results-head"><div><h2>网页靶场结果</h2><p>综合分按命中数量 55%、点击命中率 25%、平均命中时间 20% 计算。</p></div></div>
+      <div class="result-wrap"><table><thead><tr><th>排名</th><th>游戏灵敏度</th><th>命中目标</th><th>点击命中率</th><th>平均命中时间</th><th>网页综合分</th></tr></thead><tbody id="browserResultBody"></tbody></table></div>
+    </section>
+
+    <section class="recommendation" id="browserRecommendation">
+      <div class="eyebrow">网页测试结论</div>
+      <h2 id="browserWinnerTitle">完成全部测试后显示</h2>
+      <p id="browserWinnerText"></p>
+    </section>
+
+    <section class="session card" id="session">
+      <div class="card-inner">
+        <div class="test-banner">
+          <div><p class="tiny">当前测试</p><div class="test-sens" id="testSens">0.300</div></div>
+          <div class="eDPI">eDPI<b id="testEdpi">240</b><span id="roundIndicator">第 1 / 5 组</span></div>
+        </div>
+        <div class="timer"><button class="secondary" id="timerToggle">开始 6 分钟</button><time id="timer">06:00</time><button class="secondary" id="timerReset">重置</button></div>
+        <div class="score-grid">
+          <div class="score-field"><label>困难 Bot<br>击杀数</label><input id="kills" type="number" min="0" max="100" placeholder="例如 16"></div>
+          <div class="score-field"><label>微调点头<br>1–10 分</label><input id="micro" type="number" min="1" max="10" placeholder="1–10"></div>
+          <div class="score-field"><label>转身控制<br>1–10 分</label><input id="turn" type="number" min="1" max="10" placeholder="1–10"></div>
+          <div class="score-field"><label>跟枪稳定<br>1–10 分</label><input id="track" type="number" min="1" max="10" placeholder="1–10"></div>
+          <div class="score-field"><label>放松/自信<br>1–10 分</label><input id="comfort" type="number" min="1" max="10" placeholder="1–10"></div>
+        </div>
+        <p class="score-hint">评分小提醒：过甩通常说明偏快，拉不够或大转身吃力通常说明偏慢。不要因为一两枪失误就把分数打低，看的是整个过程的可控感。</p>
+        <div class="actions"><button id="saveRound">保存这一组，下一组</button><button class="secondary" id="skipRound">跳过本组</button></div>
+      </div>
+    </section>
+
+    <section class="recommendation" id="recommendation">
+      <div class="eyebrow">实验结论</div>
+      <h2 id="winnerTitle">你目前最适合的起点</h2>
+      <p id="winnerText"></p>
+    </section>
+
+    <section class="results card">
+      <div class="results-head"><div><h2>实验记录</h2><p>综合分：困难 Bot 20% + 微调 25% + 转身 15% + 跟枪 20% + 放松/自信 20%。</p></div><div class="actions" style="margin:0"><button class="secondary" id="export">导出 CSV</button><button class="secondary danger" id="clear">清空记录</button></div></div>
+      <div class="result-wrap"><table><thead><tr><th>排名</th><th>游戏灵敏度</th><th>eDPI</th><th>Bot 击杀</th><th>微调</th><th>转身</th><th>跟枪</th><th>放松</th><th>综合分</th></tr></thead><tbody id="resultBody"><tr><td class="empty" colspan="9">填好基准后，点击“生成 5 组候选灵敏度”开始。</td></tr></tbody></table></div>
+    </section>
+    <p class="note">这是一份决策辅助，不是医学或竞技保证。优先选连续几天仍稳定、手不紧、微调不费力的一组；选定后至少坚持 1–2 周，再根据实战慢慢微调。</p>
+  </main>
+
+  <script>
+    const storeKey = 'valorant-sensitivity-lab-v1';
+    const fields = ['kills', 'micro', 'turn', 'track', 'comfort'];
+    let candidates = [];
+    let currentIndex = 0;
+    let records = [];
+    let browserIndex = 0;
+    let browserResults = [];
+    let browserBaseSensitivity = .3;
+    let aimTimer = null;
+    let aim = null;
+    const aimDuration = 45000;
+    const aimCountdownDuration = 3000;
+    const aimPattern = buildAimPattern();
+    let seconds = 360;
+    let ticking = null;
+
+    const $ = (id) => document.getElementById(id);
+    const number = (id, fallback = 0) => Number($(id).value) || fallback;
+    const round = (value, digits = 1) => Number(value.toFixed(digits));
+    const formatSens = (value) => Number(value).toFixed(3);
+
+    function getSettings() {
+      return { dpi: Math.max(100, number('dpi', 800)), sensitivity: Math.max(.01, number('sensitivity', .3)) };
+    }
+
+    function updateReadout() {
+      const { dpi, sensitivity } = getSettings();
+      const edpi = Math.round(dpi * sensitivity);
+      const cm360 = 13062.857 / (dpi * sensitivity);
+      $('edpi').textContent = edpi;
+      $('cm360').textContent = `约 ${cm360.toFixed(1)} cm / 360°`;
+    }
+
+    function makeCandidates() {
+      const { sensitivity } = getSettings();
+      candidates = [.82, .91, 1, 1.09, 1.18].map(multiplier => round(sensitivity * multiplier, 3));
+      currentIndex = 0;
+      records = [];
+      browserIndex = 0;
+      browserResults = [];
+      browserBaseSensitivity = sensitivity;
+      persist();
+      $('session').classList.add('show');
+      $('recommendation').classList.remove('show');
+      $('browserRecommendation').classList.remove('show');
+      showRound();
+      showBrowserRound();
+      renderResults();
+      renderBrowserResults();
+    }
+
+    function shuffleCandidates() {
+      if (!candidates.length) { makeCandidates(); }
+      for (let index = candidates.length - 1; index > 0; index--) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [candidates[index], candidates[randomIndex]] = [candidates[randomIndex], candidates[index]];
+      }
+      currentIndex = 0;
+      records = [];
+      browserIndex = 0;
+      browserResults = [];
+      persist();
+      showRound();
+      showBrowserRound();
+      renderResults();
+      renderBrowserResults();
+    }
+
+    function showRound() {
+      stopTimer(); resetTimer();
+      if (currentIndex >= candidates.length) { finishSession(); return; }
+      const { dpi } = getSettings();
+      const sensitivity = candidates[currentIndex];
+      $('testSens').textContent = formatSens(sensitivity);
+      $('testEdpi').textContent = Math.round(dpi * sensitivity);
+      $('roundIndicator').textContent = `第 ${currentIndex + 1} / ${candidates.length} 组`;
+      fields.forEach(id => $(id).value = '');
+      $('saveRound').textContent = currentIndex === candidates.length - 1 ? '保存并查看结论' : '保存这一组，下一组';
+    }
+
+    function score(record) {
+      const botScore = Math.min(record.kills, 30) / 30 * 10;
+      return round(botScore * .2 + record.micro * .25 + record.turn * .15 + record.track * .2 + record.comfort * .2, 2);
+    }
+
+    function saveRound() {
+      const values = Object.fromEntries(fields.map(id => [id, number(id)]));
+      if (fields.some(id => values[id] === 0)) { alert('请填完本组的五项分数再保存。'); return; }
+      if ([values.micro, values.turn, values.track, values.comfort].some(value => value < 1 || value > 10)) { alert('四项主观评分请填 1–10 分。'); return; }
+      const existing = records.findIndex(record => record.sensitivity === candidates[currentIndex]);
+      const record = { sensitivity: candidates[currentIndex], ...values };
+      record.total = score(record);
+      if (existing >= 0) records[existing] = record; else records.push(record);
+      currentIndex++;
+      persist();
+      renderResults();
+      showRound();
+    }
+
+    function skipRound() {
+      currentIndex++;
+      persist();
+      showRound();
+    }
+
+    function finishSession() {
+      stopTimer();
+      $('session').classList.remove('show');
+      if (!records.length) return;
+      const sorted = [...records].sort((a, b) => b.total - a.total);
+      const winner = sorted[0];
+      const { dpi } = getSettings();
+      const runnerUp = sorted[1];
+      $('winnerTitle').textContent = `建议从 ${formatSens(winner.sensitivity)} 开始固定使用`;
+      $('winnerText').textContent = `它的综合分为 ${winner.total}，对应 ${Math.round(dpi * winner.sensitivity)} eDPI。先连续使用 1–2 周；${runnerUp ? `如果 ${formatSens(runnerUp.sensitivity)} 的分数只差 ${round(winner.total - runnerUp.total, 2)}，两者都可保留，优先选实战里更放松的一组。` : '下次可补齐更多候选值，让结果更稳定。'}`;
+      $('recommendation').classList.add('show');
+      persist();
+    }
+
+    function buildAimPattern() {
+      let seed = 241019;
+      const random = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      return Array.from({ length: 120 }, () => ({ x: .12 + random() * .76, y: .14 + random() * .72 }));
+    }
+
+    function resizeAimCanvas() {
+      const canvas = $('aimCanvas');
+      const rectangle = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rectangle.width * ratio);
+      canvas.height = Math.round(rectangle.height * ratio);
+      const context = canvas.getContext('2d');
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      return { width: rectangle.width, height: rectangle.height, context };
+    }
+
+    function newAimTarget() {
+      const { width, height } = resizeAimCanvas();
+      const point = aimPattern[aim.targetIndex % aimPattern.length];
+      aim.targetIndex++;
+      aim.target = { x: point.x * width, y: point.y * height, radius: Math.max(13, Math.min(width, height) * .032) };
+      aim.targetStartedAt = performance.now();
+    }
+
+    function drawAim() {
+      const { width, height, context } = resizeAimCanvas();
+      context.clearRect(0, 0, width, height);
+      context.strokeStyle = 'rgba(197, 221, 232, .16)';
+      context.lineWidth = 1;
+      context.beginPath(); context.moveTo(width / 2, 0); context.lineTo(width / 2, height); context.moveTo(0, height / 2); context.lineTo(width, height / 2); context.stroke();
+      if (!aim || !aim.target) return;
+      const target = aim.target;
+      const halo = context.createRadialGradient(target.x, target.y, 1, target.x, target.y, target.radius * 1.9);
+      halo.addColorStop(0, 'rgba(255, 92, 85, .36)'); halo.addColorStop(1, 'rgba(255, 92, 85, 0)');
+      context.fillStyle = halo; context.beginPath(); context.arc(target.x, target.y, target.radius * 1.9, 0, Math.PI * 2); context.fill();
+      context.fillStyle = '#ff625b'; context.beginPath(); context.arc(target.x, target.y, target.radius, 0, Math.PI * 2); context.fill();
+      context.fillStyle = '#fff4df'; context.beginPath(); context.arc(target.x, target.y, target.radius * .4, 0, Math.PI * 2); context.fill();
+      context.strokeStyle = '#e9ffff'; context.lineWidth = 1.5;
+      context.beginPath(); context.moveTo(aim.x - 10, aim.y); context.lineTo(aim.x + 10, aim.y); context.moveTo(aim.x, aim.y - 10); context.lineTo(aim.x, aim.y + 10); context.stroke();
+      context.beginPath(); context.arc(aim.x, aim.y, 3.5, 0, Math.PI * 2); context.stroke();
+    }
+
+    function showBrowserRound() {
+      if (!candidates.length) { $('browserSens').textContent = '—'; $('browserRound').textContent = '先生成候选值'; return; }
+      if (browserIndex >= candidates.length) { $('browserSens').textContent = '完成'; $('browserRound').textContent = '5 组已测试'; finishBrowserTest(); return; }
+      $('browserSens').textContent = formatSens(candidates[browserIndex]);
+      $('browserRound').textContent = `第 ${browserIndex + 1} / ${candidates.length} 组`;
+      $('startBrowserTest').textContent = `测试 ${formatSens(candidates[browserIndex])}（45 秒）`;
+      updateAimStats();
+    }
+
+    function beginBrowserTest() {
+      if (!candidates.length) { makeCandidates(); }
+      if (aim && aim.active) return;
+      if (browserIndex >= candidates.length) { finishBrowserTest(); return; }
+      const canvas = $('aimCanvas');
+      const { width, height } = resizeAimCanvas();
+      const sensitivity = candidates[browserIndex];
+      aim = { active: true, phase: 'countdown', sensitivity, scale: Math.max(.32, Math.min(2.3, sensitivity / browserBaseSensitivity)) * .72, x: width / 2, y: height / 2, hits: 0, shots: 0, responseTimes: [], targetIndex: 0, target: null, startedAt: 0, countdownEndsAt: performance.now() + aimCountdownDuration, targetStartedAt: 0 };
+      drawAim();
+      $('aimGuide').classList.remove('hidden');
+      showAimCountdown(aimCountdownDuration);
+      $('aimCanvas').requestPointerLock();
+      aimTimer = setInterval(() => {
+        const now = performance.now();
+        if (aim.phase === 'countdown') {
+          const countdownRemaining = aim.countdownEndsAt - now;
+          if (countdownRemaining > 0) { showAimCountdown(countdownRemaining); return; }
+          aim.phase = 'live';
+          aim.startedAt = now;
+          newAimTarget();
+          $('aimGuide').classList.add('hidden');
+          drawAim();
+        }
+        const elapsed = now - aim.startedAt;
+        updateAimStats(Math.max(0, aimDuration - elapsed));
+        if (elapsed >= aimDuration) endBrowserTest();
+      }, 60);
+      $('startBrowserTest').textContent = '正在测试…';
+    }
+
+    function endBrowserTest() {
+      if (!aim || !aim.active) return;
+      const completed = aim;
+      aim.active = false;
+      clearInterval(aimTimer); aimTimer = null;
+      if (document.pointerLockElement === $('aimCanvas')) document.exitPointerLock();
+      const record = { sensitivity: completed.sensitivity, hits: completed.hits, shots: completed.shots, accuracy: completed.shots ? round(completed.hits / completed.shots * 100, 1) : 0, reaction: completed.hits ? round(completed.responseTimes.reduce((sum, time) => sum + time, 0) / completed.hits) : aimDuration };
+      const existing = browserResults.findIndex(item => item.sensitivity === record.sensitivity);
+      if (existing >= 0) browserResults[existing] = record; else browserResults.push(record);
+      browserIndex++;
+      $('aimGuide').classList.remove('hidden');
+      $('aimGuide').innerHTML = '本组完成。点击按钮开始下一组。<br>不要改鼠标 DPI 或系统鼠标速度。';
+      persist(); renderBrowserResults(); showBrowserRound();
+    }
+
+    function showAimCountdown(remaining) {
+      const secondsLeft = Math.max(1, Math.ceil(remaining / 1000));
+      $('aimTime').textContent = `准备 ${secondsLeft}`;
+      $('aimGuide').classList.remove('hidden');
+      $('aimGuide').innerHTML = `${secondsLeft} 秒后开始<br>请将白色准星摆在中心点，倒计时结束后目标才会出现。`;
+    }
+
+    function resetBrowserTest() {
+      if (aim && aim.active) { aim.active = false; clearInterval(aimTimer); aimTimer = null; if (document.pointerLockElement === $('aimCanvas')) document.exitPointerLock(); }
+      aim = null;
+      $('aimGuide').classList.remove('hidden');
+      $('aimGuide').innerHTML = '点击“开始网页测试”启用准星模式。<br>系统鼠标箭头会隐藏，只用白色准星对准圆形目标后左键射击。';
+      updateAimStats(); drawAim();
+      showBrowserRound();
+    }
+
+    function updateAimStats(remaining = aim && aim.active ? Math.max(0, aimDuration - (performance.now() - aim.startedAt)) : aimDuration) {
+      $('aimTime').textContent = `00:${Math.ceil(remaining / 1000).toString().padStart(2, '0')}`;
+      $('aimHits').textContent = aim ? aim.hits : 0;
+      $('aimAccuracy').textContent = aim && aim.shots ? `${round(aim.hits / aim.shots * 100, 1)}%` : '—';
+      $('aimReaction').textContent = aim && aim.responseTimes.length ? `${round(aim.responseTimes.reduce((sum, time) => sum + time, 0) / aim.responseTimes.length)} ms` : '—';
+    }
+
+    function handleAimMove(event) {
+      if (!aim || !aim.active || document.pointerLockElement !== $('aimCanvas')) return;
+      const { width, height } = resizeAimCanvas();
+      aim.x = Math.max(0, Math.min(width, aim.x + event.movementX * aim.scale));
+      aim.y = Math.max(0, Math.min(height, aim.y + event.movementY * aim.scale));
+      drawAim();
+    }
+
+    function handleAimShot(event) {
+      if (!aim || !aim.active) return;
+      event.preventDefault();
+      if (document.pointerLockElement !== $('aimCanvas')) { $('aimCanvas').requestPointerLock(); return; }
+      if (aim.phase === 'countdown') return;
+      aim.shots++;
+      const distance = Math.hypot(aim.x - aim.target.x, aim.y - aim.target.y);
+      if (distance <= aim.target.radius) { aim.hits++; aim.responseTimes.push(performance.now() - aim.targetStartedAt); newAimTarget(); }
+      updateAimStats(); drawAim();
+    }
+
+    function browserScore(record, maximumHits, maximumAccuracy, fastestReaction) {
+      return round(10 * ((record.hits / Math.max(maximumHits, 1)) * .55 + (record.accuracy / Math.max(maximumAccuracy, 1)) * .25 + (Math.max(fastestReaction, 1) / Math.max(record.reaction, 1)) * .2), 2);
+    }
+
+    function renderBrowserResults() {
+      const section = $('browserResults'); const body = $('browserResultBody');
+      if (!browserResults.length) { section.classList.remove('show'); return; }
+      section.classList.add('show');
+      const maximumHits = Math.max(...browserResults.map(record => record.hits));
+      const maximumAccuracy = Math.max(...browserResults.map(record => record.accuracy));
+      const fastestReaction = Math.min(...browserResults.map(record => record.reaction));
+      const sorted = browserResults.map(record => ({ ...record, total: browserScore(record, maximumHits, maximumAccuracy, fastestReaction) })).sort((a, b) => b.total - a.total);
+      body.innerHTML = sorted.map((record, index) => { const rankClass = index === 0 ? 'one' : index === 1 ? 'two' : index === 2 ? 'three' : ''; return `<tr><td><span class="rank ${rankClass}">${index + 1}</span></td><td>${formatSens(record.sensitivity)}</td><td>${record.hits}</td><td>${record.accuracy}%</td><td>${Math.round(record.reaction)} ms</td><td class="total">${record.total}</td></tr>`; }).join('');
+    }
+
+    function finishBrowserTest() {
+      if (browserResults.length < candidates.length || !browserResults.length) return;
+      const maximumHits = Math.max(...browserResults.map(record => record.hits));
+      const maximumAccuracy = Math.max(...browserResults.map(record => record.accuracy));
+      const fastestReaction = Math.min(...browserResults.map(record => record.reaction));
+      const sorted = browserResults.map(record => ({ ...record, total: browserScore(record, maximumHits, maximumAccuracy, fastestReaction) })).sort((a, b) => b.total - a.total);
+      const winner = sorted[0]; const next = sorted[1];
+      $('browserWinnerTitle').textContent = `网页靶场首选：${formatSens(winner.sensitivity)}`;
+      $('browserWinnerText').textContent = `它以 ${winner.hits} 次命中、${winner.accuracy}% 命中率和 ${Math.round(winner.reaction)} ms 平均命中时间得到 ${winner.total} 分。${next && winner.total - next.total < .35 ? `与 ${formatSens(next.sensitivity)} 的差距很小，优先保留手更放松的那组。` : '可先把它作为游戏内尝试的起点。'}`;
+      $('browserRecommendation').classList.add('show');
+    }
+
+    function renderResults() {
+      const body = $('resultBody');
+      if (!records.length) { body.innerHTML = '<tr><td class="empty" colspan="9">完成一组后，数据会在这里按综合分排名。</td></tr>'; return; }
+      const { dpi } = getSettings();
+      const sorted = [...records].sort((a, b) => b.total - a.total);
+      body.innerHTML = sorted.map((record, index) => {
+        const rankClass = index === 0 ? 'one' : index === 1 ? 'two' : index === 2 ? 'three' : '';
+        return `<tr><td><span class="rank ${rankClass}">${index + 1}</span></td><td>${formatSens(record.sensitivity)}</td><td>${Math.round(dpi * record.sensitivity)}</td><td>${record.kills}</td><td>${record.micro}</td><td>${record.turn}</td><td>${record.track}</td><td>${record.comfort}</td><td class="total">${record.total}</td></tr>`;
+      }).join('');
+    }
+
+    function renderTimer() {
+      const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+      $('timer').textContent = `${minutes}:${remainingSeconds}`;
+    }
+    function stopTimer() { if (ticking) clearInterval(ticking); ticking = null; $('timerToggle').textContent = seconds === 360 ? '开始 6 分钟' : '继续'; }
+    function resetTimer() { seconds = 360; renderTimer(); $('timerToggle').textContent = '开始 6 分钟'; }
+    function toggleTimer() {
+      if (ticking) { stopTimer(); return; }
+      $('timerToggle').textContent = '暂停';
+      ticking = setInterval(() => {
+        seconds--;
+        renderTimer();
+        if (seconds <= 0) { stopTimer(); alert('本组测试时间到，记录你的感受和分数吧。'); }
+      }, 1000);
+    }
+
+    function persist() {
+      const { dpi, sensitivity } = getSettings();
+      localStorage.setItem(storeKey, JSON.stringify({ dpi, sensitivity, candidates, currentIndex, records, browserIndex, browserResults, browserBaseSensitivity }));
+    }
+    function restore() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storeKey));
+        if (!saved) return;
+        $('dpi').value = saved.dpi || 800;
+        $('sensitivity').value = saved.sensitivity || .3;
+        candidates = saved.candidates || [];
+        currentIndex = saved.currentIndex || 0;
+        records = saved.records || [];
+        browserIndex = saved.browserIndex || 0;
+        browserResults = saved.browserResults || [];
+        browserBaseSensitivity = saved.browserBaseSensitivity || saved.sensitivity || .3;
+        updateReadout(); renderResults();
+        renderBrowserResults(); showBrowserRound();
+        if (candidates.length && currentIndex < candidates.length) { $('session').classList.add('show'); showRound(); }
+        if (candidates.length && currentIndex >= candidates.length && records.length) finishSession();
+      } catch { localStorage.removeItem(storeKey); }
+    }
+    function exportCsv() {
+      if (!records.length) { alert('还没有可导出的记录。'); return; }
+      const { dpi } = getSettings();
+      const rows = [['游戏灵敏度', 'eDPI', '困难Bot击杀', '微调', '转身', '跟枪', '放松自信', '综合分'], ...[...records].sort((a,b) => b.total-a.total).map(record => [formatSens(record.sensitivity), Math.round(dpi*record.sensitivity), record.kills, record.micro, record.turn, record.track, record.comfort, record.total])];
+      const blob = new Blob(['\ufeff' + rows.map(row => row.join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'valorant-sensitivity-results.csv'; link.click(); URL.revokeObjectURL(link.href);
+    }
+
+    ['dpi', 'sensitivity'].forEach(id => $(id).addEventListener('input', () => { updateReadout(); persist(); renderResults(); }));
+    $('generate').addEventListener('click', makeCandidates);
+    $('shuffle').addEventListener('click', shuffleCandidates);
+    $('saveRound').addEventListener('click', saveRound);
+    $('skipRound').addEventListener('click', skipRound);
+    $('timerToggle').addEventListener('click', toggleTimer);
+    $('timerReset').addEventListener('click', () => { stopTimer(); resetTimer(); });
+    $('export').addEventListener('click', exportCsv);
+    $('clear').addEventListener('click', () => { if (confirm('确定清空所有测试记录吗？')) { records = []; candidates = []; currentIndex = 0; localStorage.removeItem(storeKey); $('session').classList.remove('show'); $('recommendation').classList.remove('show'); renderResults(); } });
+    $('startBrowserTest').addEventListener('click', beginBrowserTest);
+    $('resetBrowserTest').addEventListener('click', resetBrowserTest);
+    $('aimCanvas').addEventListener('mousedown', handleAimShot);
+    document.addEventListener('mousemove', handleAimMove);
+    document.addEventListener('pointerlockchange', () => {
+      if (!aim || !aim.active) return;
+      if (document.pointerLockElement === $('aimCanvas')) {
+        if (aim.phase === 'countdown') showAimCountdown(aim.countdownEndsAt - performance.now());
+        else $('aimGuide').classList.add('hidden');
+      } else {
+        $('aimGuide').classList.remove('hidden');
+        $('aimGuide').innerHTML = '准星模式已暂停。点击靶场区域继续。<br>按 Esc 可以退出准星模式。';
+      }
+    });
+    window.addEventListener('resize', () => { if (aim) drawAim(); else resizeAimCanvas(); });
+    updateReadout(); renderTimer(); restore();
+  </script>
+</body>
+</html>
+
